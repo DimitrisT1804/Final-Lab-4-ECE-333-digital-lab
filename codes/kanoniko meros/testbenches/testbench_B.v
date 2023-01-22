@@ -8,7 +8,7 @@ integer i;
 reg [31:0] number;
 reg [5:0] counter;
 
-wire audEnPWM = 1;
+wire audEnPWM;
 wire micLRselPDM = 1;
 
 wire data_out;
@@ -134,8 +134,8 @@ begin
     //#1000 speaker_button = 0;
     // #16494514.5 speaker_button = 1;
     // #10000 speaker_button = 0;
-    #16800 speaker_button = 1;
-    #10000 speaker_button = 0;
+    //#16800 speaker_button = 1;
+    //#10000 speaker_button = 0;
 
 
     // #1008505 mic_data = 0;
@@ -209,8 +209,8 @@ begin
     // #500 mic_data = 0;
     // #500 mic_data = 1;
     // #500 mic_data = 0;
-    //#16494514.5 speaker_button = 1;
-    //#10000 speaker_button = 0;
+    #16494514.5 speaker_button = 1;
+    #10000 speaker_button = 0;
 
 
 end

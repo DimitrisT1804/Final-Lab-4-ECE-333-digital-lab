@@ -1,22 +1,17 @@
 // clock testbench
 `timescale 1ns/1ps
 module testbench_A;
-reg clk, reset, record_button, mic_data;;
+reg clk, reset, record_button, mic_data;
 wire clkout_sys, clkout_mic;
+//reg [5:0] counter;
 
-integer i;
-reg [31:0] number;
-reg [5:0] counter;
-
-microphone_controller microphone_controller_inst(clk, reset, record_button, mic_data, clkout_sys, clkout_mic);
+microphone_controller_first microphone_controller_first_sinst(.clk(clk), .reset(reset), .record_button(record_button), .mic_data(mic_data));
 
 initial 
 begin
     clk = 0;
     reset = 1;
     record_button = 0;
-    i = 0;
-    number = 32'b00001011110010101001110001110100;
     #100 reset = 0;
     #250.5 record_button = 1;
     //#1000 record_button = 0;
@@ -244,18 +239,6 @@ end
 // begin
 //     i = i + 1;
 // end
-
-always @(i)
-begin
-    if(i == 33)
-    begin
-        i = 0;
-        //number = 32'b01001110011100110111011000010100;
-    end
-    //else if (i == 32)
-        //number = 32'b01001110011100110111011000010100;
-
-end
 
 
 

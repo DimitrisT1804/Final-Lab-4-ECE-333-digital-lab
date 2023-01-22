@@ -1,15 +1,14 @@
 // microphone controller
-module microphone_controller(reset, record_button, mic_data, clkout_sys, clkout_mic, WEA, addr_new, bram_enable, data_bram, new_button);
-input reset, record_button, mic_data;
-input clkout_sys, clkout_mic;
-
-output [3:0] WEA;
-output reg [15:0] addr_new;
-output bram_enable;
+module microphone_controller_first(clk, reset, record_button, mic_data);
+input clk, reset, record_button, mic_data;
+//input clkout_sys, clkout_mic;
+wire clkout_sys, clkout_mic;
+reg [15:0] addr_new;
+//reg bram_enable;
 
 
 reg [31:0] data_shift;
- output reg [31:0] data_bram;
+reg [31:0] data_bram;
 
 reg [2:0] current_state, next_state;
 
@@ -21,12 +20,11 @@ reg counter_enable, counter_record_enable, mic_on, enable_shift;
 
 /* gia tin bram metavlites */
 reg [3:0] WEA;
-//reg [15:0] addr = 16'd1;
 reg bram_enable = 1;
-//wire [31:0] data_out;
+wire [31:0] data_out;
 
 reg [9:0] addr;
-output reg new_button;
+reg new_button;
 
 parameter idle = 3'b000,
             mic_enable = 3'b001,
@@ -40,8 +38,8 @@ begin
       new_button <= 0;
    else
    begin
-      //if (counter_record == 24'd2999998)      // ama thelo na to kratiso perissotero apla anevazo ton xrono
-      if(counter_record == 24'd12822)
+      if (counter_record == 24'd2999998)      // ama thelo na to kratiso perissotero apla anevazo ton xrono
+      //if(counter_record == 24'd12822)
          new_button <= 0;
       else if (record_button)
          new_button <= 1;
@@ -106,8 +104,8 @@ begin
          counter_record_enable = 1;
          counter_enable = 1;
          //WEA = 4'b1111;
-         //if(counter_record == 24'd2999999)
-         if(counter_record == 24'd12822)    //214314
+         if(counter_record == 24'd2999999)
+         //if(counter_record == 24'd12822)    //214314
             next_state = idle;
          else if(counter == 12'd3149)    // -1 apo to allo roloi gia na provlepsei kai tin allagi tou state
             next_state = bram_write;
@@ -117,12 +115,12 @@ begin
 
       mic_sampling:  // arxika thelei na pao stin mesi kai meta metrao xrono iso me 32*500 = 16000ns
       begin
-         mic_on = 1;
+         //mic_on = 1;
          counter_record_enable = 1;
          counter_enable = 1;
          //WEA = 4'b1111;
-         //if(counter_record == 24'd2999999)
-         if(counter_record == 24'd12822)
+         if(counter_record == 24'd2999999)
+         //if(counter_record == 24'd12822)
             next_state = idle;
          else if(counter == 12'd3197)    // -2 gt ipologizo kai to teleutaio state
             next_state = bram_write;
@@ -137,8 +135,8 @@ begin
          counter_enable = 0;
          counter_record_enable = 1;
          WEA = 4'b1111;
-         //if(counter_record == 24'd2999999)
-         if(counter_record == 24'd12822)
+         if(counter_record == 24'd2999999)
+         //if(counter_record == 24'd12822)
             next_state = idle;
          else
             next_state = register_reset;
@@ -148,8 +146,8 @@ begin
       begin
          enable_shift = 0;
          addr_count = 1;
-         //if(counter_record == 24'd2999999)
-         if(counter_record == 24'd12822)
+         if(counter_record == 24'd2999999)
+         //if(counter_record == 24'd12822)
             next_state = idle;
          else
             next_state = mic_sampling;
@@ -208,25 +206,13 @@ end
 
 always @(addr)
 begin
-   addr_new = {1'b0, addr, 5'b00000};
+   addr_new = {1'b1, addr, 5'b00000};  // thelei 1 to MSB
 end
 
-// always @(posedge clkout_mic or posedge reset)
-// begin
-//    if(reset)
-//       counter_mic <= 6'b0;
-//    else
-//    begin
-//       if(counter_enable == 1)
-//          counter_mic <= counter_mic + 6'b1;
-//       else
-//          counter_mic <= 6'b0;
-//    end
-// end
 
-//clocks_mmcm clocks_mmcm_inst (.clk(clk), .reset(reset), .clkout_sys(clkout_sys), .clkout_mic(clkout_mic));
+clocks_mmcm clocks_mmcm_inst (.clk(clk), .reset(reset), .clkout_sys(clkout_sys), .clkout_mic(clkout_mic));
 
-//bram bram_inst (.clk(clkout_sys), .reset(reset), .bram_enable(bram_enable), .addr(addr), .WEA(WEA), .data_in(data_bram), .data_out(data_out));
+bram bram_inst (.clk(clkout_sys), .reset(reset), .bram_enable(bram_enable), .addr(addr_new), .WEA(WEA), .data_in(data_bram), .data_out(data_out));
 
 
 

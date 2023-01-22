@@ -18,11 +18,14 @@ reg load;
 reg counter_enable, addr_enable;
 reg [11:0] counter;
 reg [2:0] current_state, next_state;
-//reg [9:0] addr_count;
 
 reg [9:0] addr_count;
 reg [6:0] counter_shifter;
 reg counter_shifter_enable;
+
+/* metavlites gia counter playback */
+reg [29:0] counter_playback;
+reg counter_playback_enable;
 
 always @(posedge clkout_sys or posedge reset)
 begin
@@ -50,8 +53,6 @@ begin
         new_button_playback <= 0;
       else if (speaker_button)
         new_button_playback <= 1;
-        // if(speaker_button)
-        //     new_button_playback <= 1;
    end
 end
 
@@ -75,12 +76,11 @@ assign data_out = tmp[31];
 
 // FSM
 parameter idle_state = 3'b000,
-            serialisation = 3'b001,
-            addr_add = 3'b010,
-            waiting = 3'b011,
-            loading = 3'b100,
-            middle = 3'b101,
-            audio_enable = 3'b111;
+            first_load = 3'b001,
+            serialisation = 3'b010,
+            addr_add = 3'b011,
+            last_bits_serialization = 3'b100,
+            loading = 3'b101;
 
 
 always @(posedge clkout_sys or posedge reset)
@@ -99,16 +99,18 @@ begin
     audEnPWM = 1;
     next_state = current_state;
     counter_shifter_enable = 1;
+    counter_playback_enable = 1;
     
     case(current_state)
     idle_state: 
     begin
+        counter_playback_enable = 0;
         audEnPWM = 0;
         //load = 1;
         counter_shifter_enable = 0; 
         counter_enable = 0;
         if(new_button_playback)  
-            next_state = waiting;
+            next_state = first_load;
         else
             next_state = current_state;
     end
@@ -116,10 +118,10 @@ begin
     // audio_enable:       // mallon peritoviva
     // begin
     //     audEnPWM = 1;
-    //     next_state = waiting;
+    //     next_state = first_load;
     // end
 
-    waiting:
+    first_load:
     begin
         load = 1;
         counter_shifter_enable = 1; 
@@ -136,28 +138,30 @@ begin
         //if(counter == 5'd16)
         //if(counter == 11'd640)
         if(counter == 12'd1599)
-            next_state = middle;
+            next_state = addr_add;
         else
             next_state = current_state;
     end
 
-    middle:
+    addr_add:     // mesi toy minimatos gia na allaxei noris i dieuthinsi tis BRAM
     begin
         addr_enable = 1;
-        next_state = addr_add;
+        next_state = last_bits_serialization;
     end
 
-    addr_add:
+    last_bits_serialization:
     begin
         //load = 1;
         //addr_enable = 1;
-        if(counter == 12'd3198) // -3 gia na ipologiso ola ta states
+        if(counter_playback >= 30'd1000000000)
+            next_state = idle_state;
+        else if(counter == 12'd3198) // -3 gia na ipologiso ola ta states
             next_state = loading;     
         else
             next_state = current_state;
     end
 
-    // waiting:
+    // first_load:
     // begin
     //     //if(counter == 5'd30)
     //     if(counter == 11'd1278)
@@ -204,8 +208,22 @@ begin
     end
 end
 
-assign addr_count_new = {1'b0, addr_count, 5'b00000};
+assign addr_count_new = {1'b1, addr_count, 5'b00000};
 //assign addr_count_new = 16'b0000000000100000;
+
+/* counter poy metraei 5 sec gia na stamatisei na paizei to minima */
+always @(posedge clkout_sys or posedge reset)
+begin
+    if(reset)
+        counter_playback <= 30'b0;
+    else
+    begin
+        if(counter_playback_enable == 1)
+            counter_playback <= counter_playback + 30'b1;
+        else
+            counter_playback <= 30'b0;
+    end
+end
 
 
 endmodule

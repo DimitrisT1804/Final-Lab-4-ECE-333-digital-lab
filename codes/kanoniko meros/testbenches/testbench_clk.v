@@ -4,7 +4,7 @@ module testbench_clk;
 reg clk, reset;
 wire clkout_sys, clkout_mic;
 
-microphone_controller microphone_controller_inst(clk, reset, clkout_sys, clkout_mic);
+clocks_mmcm clocks_mmcm_inst(.clk(clk), .reset(reset), .clkout_sys(clkout_sys), .clkout_mic(clkout_mic));
 
 initial 
 begin

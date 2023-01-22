@@ -34,13 +34,8 @@ always @(posedge clkout_sys)
 begin
     if(new_button_rec)
         addr_for_bram <= addr;
-    else //if (new_button_playback)
-    //begin
-        //if(addr_count == 16'd27776)
-        //    addr_for_bram <= 16'b0;
-        //else
-            addr_for_bram <= addr_count;
-   // end
+    else
+        addr_for_bram <= addr_count;
 end
 
 assign micLRselPDM = 1;
